@@ -1,0 +1,10 @@
+# Build artifacts
+build/
+*.o
+*.so
+server
+client
+
+# Temporary files
+*.swp
+*~
