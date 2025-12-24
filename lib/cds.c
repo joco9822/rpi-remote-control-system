@@ -1,5 +1,5 @@
 #include <wiringPi.h>
-#include "../include/common.h"
+#include "common.h"
 
 #define PIN_CDS 14   /* WiringPi 핀 번호 */
 

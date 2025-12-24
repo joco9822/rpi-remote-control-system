@@ -1,6 +1,6 @@
 #include <wiringPi.h>
 #include <softPwm.h>
-#include "../include/common.h"
+#include "common.h"
 
 #define PIN_LED 26   /* WiringPi 핀 번호 */
 

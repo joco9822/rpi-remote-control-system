@@ -1,6 +1,6 @@
 #include <wiringPi.h>
 #include <softTone.h> 
-#include "../include/common.h"  
+#include "common.h"  
 
 #define PIN_BUZZER 29   /* WiringPi 핀 번호 */
 

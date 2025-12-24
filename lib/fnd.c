@@ -1,5 +1,5 @@
 #include <wiringPi.h>
-#include "../include/common.h"
+#include "common.h"
 
 /* 7447 BCD 디코더 입력 핀 정의 (WiringPi 핀 번호) */
 #define PIN_FND_A 4  /* LSB (2^0) */
