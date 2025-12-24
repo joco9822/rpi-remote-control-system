@@ -2,7 +2,7 @@
 #include <softTone.h> 
 #include "../include/common.h"  
 
-#define BUZZER_PIN 29   /* WiringPi 핀 번호 */
+#define PIN_BUZZER 29   /* WiringPi 핀 번호 */
 
 int notes[] = { 
     391, 391, 440, 440, 391, 391, 329, 329, 
@@ -12,7 +12,7 @@ int notes[] = {
 };
 
 int buzzer_init() {
-    if (softToneCreate(BUZZER_PIN) != 0) {
+    if (softToneCreate(PIN_BUZZER) != 0) {
         return -1;
     }
     return 0; 
@@ -20,15 +20,15 @@ int buzzer_init() {
 
 int buzzer_control(int data) {
     if (data == 0) { /* 음악 끄기 */
-        softToneWrite(BUZZER_PIN, 0);
+        softToneWrite(PIN_BUZZER, 0);
     }
     else if (data == 1) { /* 음악 켜기 */
         int total = sizeof(notes) / sizeof(notes[0]); 
         for (int i = 0; i < total; i++) {
-            softToneWrite(BUZZER_PIN, notes[i]);
+            softToneWrite(PIN_BUZZER, notes[i]);
             delay(300); 
         }
-        softToneWrite(BUZZER_PIN, 0);
+        softToneWrite(PIN_BUZZER, 0);
     }
     else {
         return -1; 
