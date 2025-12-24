@@ -6,7 +6,9 @@
 
 int led_init() {
     pinMode(LED_PIN, OUTPUT); /* LED 핀을 출력 모드로 설정 */
-    softPwmCreate(LED_PIN, 0, 100); /* 소프트 PWM 초기화 (0~100 범위) */
+    if (softPwmCreate(LED_PIN, 0, 100) != 0) { /* 소프트 PWM 초기화 (0~100 범위) */
+        return -1;
+    }
 
     softPwmWrite(LED_PIN, 100); /* 초기 상태: LED 끄기 */
     return 0; 
