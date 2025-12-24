@@ -22,5 +22,5 @@ int cds_read() {
 * - 밝을 때 : 조도 센서 저항 낮아져 분압에 의해 GPIO 전압이 낮아짐 -> LOW
 *
 * 참고:
-* - 라즈베리파이의 GPIO는 디지털 입력 핀의 HIGH/LOW를 특정 hreshold 전압을 기준으로 판별함 
+* - 라즈베리파이의 GPIO는 디지털 입력 핀의 HIGH/LOW를 특정 threshold 전압을 기준으로 판별함 
 */
