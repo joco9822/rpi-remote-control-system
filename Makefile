@@ -20,7 +20,7 @@ LIBS = $(LIB_DIR)/libled.so $(LIB_DIR)/libbuzzer.so $(LIB_DIR)/libcds.so $(LIB_D
 .PHONY: all clean
 
 # 2. all 타겟 
-all: $(LIBS) $(SERVER_TARGET) $(CLIENT_TARGET)
+all: $(BUILD_DIR) $(LIBS) $(SERVER_TARGET) $(CLIENT_TARGET)
 # make는 먼저 모든 Dependencies가 있는지 확인한다, 
 # 만약 없다면, 해당 타겟을 빌드하기 위한 Rule을 찾아 실행함
 # make 한번에 전체 프로젝트를 빌드할 수 있다.
