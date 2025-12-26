@@ -7,11 +7,13 @@ CFLAGS = -Wall -I./code/server
 # 링커 옵션. 링크 단계에서 필요한 라이브러리 
 LDFLAGS = -lwiringPi -ldl
 
+
 # 경로 설정 
 SERVER_DIR = code/server
 CLIENT_DIR = code/client
 EXEC_DIR = exec
 LIB_EXEC_DIR = $(EXEC_DIR)/lib
+
 
 # 빌드 대상 
 SERVER_TARGET = $(EXEC_DIR)/server
@@ -21,6 +23,7 @@ DEVICE_LIBS = $(LIB_EXEC_DIR)/libled.so $(LIB_EXEC_DIR)/libbuzzer.so \
 
 .PHONY: all clean directories
 
+
 # 2. all 타겟 
 all: directories $(DEVICE_LIBS) $(SERVER_TARGET) $(CLIENT_TARGET)
 # make는 먼저 모든 Dependencies가 있는지 확인한다, 
@@ -29,6 +32,7 @@ all: directories $(DEVICE_LIBS) $(SERVER_TARGET) $(CLIENT_TARGET)
 
 directories:
 	mkdir -p $(LIB_EXEC_DIR)
+	
 
 # 3. 그 외 빌드 타겟들
 
