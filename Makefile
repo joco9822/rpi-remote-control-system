@@ -5,7 +5,7 @@ CC = gcc
 # 컴파일 옵션 및 헤더 파일 경로 지정
 CFLAGS = -Wall -I./code/server
 # 링커 옵션. 링크 단계에서 필요한 라이브러리 
-LDFLAGS = -lwiringPi -ldl
+LDFLAGS = -lwiringPi -ldl -lpthread
 
 
 # 경로 설정 
