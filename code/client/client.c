@@ -56,18 +56,23 @@ int main(int argc, char **argv) {
         /* 사용자 입력 처리 - 1~9 메뉴 기능 수행 */
         memset(&packet, 0, sizeof(packet));
         switch (choice) {
-            case 1: packet.deviceid = DEV_LED; packet.data = 1; break;
-            case 2: packet.deviceid = DEV_LED; packet.data = 0; break;
+            /* LED ON/OFF */
+            case 1: packet.deviceid = DEV_LED; packet.data = ON; break;
+            case 2: packet.deviceid = DEV_LED; packet.data = OFF; break;
+            /* LED 밝기 조절 */
             case 3: 
                 packet.deviceid = DEV_LED;
                 printf("LED 밝기를 입력해주세요 (2-100): "); 
                 scanf("%d", &packet.data);
                 //if (packet.data < 2 || packet.data > 100) 
                 break;
-            case 4: packet.deviceid = DEV_BUZZER; packet.data = 1; break;
-            case 5: packet.deviceid = DEV_BUZZER; packet.data = 0; break;
-            case 6: packet.deviceid = DEV_CDS; packet.data = 1; break;
-            case 7: packet.deviceid = DEV_CDS; packet.data = 0; break;
+            /* BUZZER ON/OFF */
+            case 4: packet.deviceid = DEV_BUZZER; packet.data = ON; break;
+            case 5: packet.deviceid = DEV_BUZZER; packet.data = OFF; break;
+            /* CDS SENSOR 감시 모드 ON/OFF */
+            case 6: packet.deviceid = DEV_CDS; packet.data = ON; break;
+            case 7: packet.deviceid = DEV_CDS; packet.data = OFF; break;
+            /* FND 카운트다운/중단 */
             case 8:
                 packet.deviceid = DEV_FND;
                 printf("카운트 다운할 숫자를 입력해주세요 (0-9): ");
@@ -77,6 +82,7 @@ int main(int argc, char **argv) {
                 packet.deviceid = DEV_FND;
                 packet.data = -1; // -1을 '중단' 신호로 정의한다.
                 break;
+            /* 잘못된 입력 처리 */
             default: 
                 printf("숫자를 잘못 입력하였습니다. 메뉴의 숫자를 선택해주세요. (0-9)\n"); continue;
         }

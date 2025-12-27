@@ -18,17 +18,19 @@ int notes[] = {
     391, 329, 293, 329, 261, 261, 261, 0
 };
 
-/* 전역 변수 */
+/* 장치제어 - 플래그 변수 */
 int cds_flag = OFF;
 int buz_flag = OFF; 
-int fnd_count = 0;
 int fnd_flag = OFF;
+int fnd_count = 0;
+
+/* 동적 라이브러리 & 장치제어 - 함수 포인터 */
 device_ctl_t led_ctl, buz_ctl, fnd_ctl;
 device_read_t cds_ctl;
 
 /* [스레드 1] 조도 센서 -> LED */
 void* cds_thread(void* arg) {
-    while(1) {
+    while(cds_flag == ON) {
         if (cds_flag == ON) {
             if (cds_ctl()) {
                 led_ctl(ON);  // 어두우면 켬
@@ -38,14 +40,15 @@ void* cds_thread(void* arg) {
         }
         delay(200);
     }
-    return NULL;
+    led_ctl(OFF); // 감시 모드 OFF 시 LED OFF 
+    return NULL;  // 스레드 Exit 
 }
 
 /* [스레드 2] 부저 연주 ON/OFF */
 void* buz_thread(void* arg) {
     while (buz_flag == ON) {  // 반복 재생 
         for (int i = 0; i < TOTAL_NOTES; i++) {  // 한 곡 재생
-            if (buz_flag == OFF) {
+            if (buz_flag == OFF) {  // 중간에 OFF 신호 오면 스레드 Exit 
                 break;
             }
             buz_ctl(notes[i]); 
@@ -53,15 +56,14 @@ void* buz_thread(void* arg) {
         }
         if (buz_flag == ON) delay(500); // 다음 곡 연주 전, 0.5초 대기
     }
-    buz_ctl(OFF);  // 확실한 종료 
+    buz_ctl(OFF);  // 종료 시 소리 끔 
     return NULL;
 }
 
 /* [스레드 3] 7세그먼트 카운트다운 */
-void* fnd_thread(void* arg) {
-    fnd_flag = ON;
+void* fnd_thread(void* arg) { 
     for (int i = fnd_count; i >= 0; i--) {
-        if (fnd_flag == OFF) {
+        if (fnd_flag == OFF) {  // 중간에 OFF 신호 오면 스레드 Exit 
             break;
         }
         fnd_ctl(i);
@@ -70,9 +72,9 @@ void* fnd_thread(void* arg) {
             delay(500); 
             buz_ctl(OFF);
         }
-        delay(1000);
+        if (fnd_flag == ON) delay(1000);
     }
-    fnd_flag = OFF;
+    fnd_flag = OFF;  // 클라이언트가 종료 or 카운트다운 완료 시 플래그 OFF 
     return NULL;
 }
 
@@ -145,28 +147,56 @@ int main() {
             continue;
         }
 
+        /* TCP - 클라이언트로부터 데이터 수신 */
         while (read(clnt_sock, &packet, sizeof(packet)) > 0) {
+
+            /* 장치 제어 */
             switch (packet.deviceid) {
+
+                /* 장치 제어 - LED ON/OFF */
                 case DEV_LED:
-                    if (led_ctl) led_ctl(packet.data);
-                    break;
-                case DEV_BUZZER:
-                    if (packet.data == ON) {
-                        pthread_create(&tid_buz, NULL, buz_thread, NULL);
-                        pthread_detach(tid_buz);
-                    } else {
-                        if (buz_ctl) buz_ctl(OFF);
+                    if (led_ctl) {
+                        led_ctl(packet.data);
                     }
                     break;
-                case DEV_CDS:
-                    cds_flag = packet.data; // ON/OFF 플래그 설정
+
+                /* 장치 제어 - BUZZER ON/OFF */
+                case DEV_BUZZER:
+                    if (packet.data == ON) {
+                        if (buz_flag == OFF) {  // 중복 생성 방지
+                            buz_flag = ON;
+                            pthread_create(&tid_buz, NULL, buz_thread, NULL);
+                            pthread_detach(tid_buz); // 종료 시 자원 자동 반환
+                        }
+                    } else {
+                        buz_flag = OFF;
+                    }
                     break;
+
+                /* 장치 제어 - CDS ON/OFF */
+                case DEV_CDS:
+                    if (packet.data == ON) {
+                        if (cds_flag == OFF) {
+                            cds_flag = ON;
+                            pthread_create(&tid_cds, NULL, cds_thread, NULL);
+                            pthread_detach(tid_cds);
+                        }
+                    } else {
+                        cds_flag = OFF; 
+                    }
+                    break;
+
+                /* 장치 제어 - FND 카운트다운/중단 */
                 case DEV_FND:
-                    if (packet.data == -1) fnd_flag = OFF; // 9번 메뉴: 중단
-                    else {
-                        fnd_count = packet.data;
-                        pthread_create(&tid_fnd, NULL, fnd_thread, NULL);
-                        pthread_detach(tid_fnd);
+                    if (packet.data == -1) {  // 중단 
+                        fnd_flag = OFF; 
+                    } else {
+                        if (fnd_flag == OFF) {
+                            fnd_count = packet.data;
+                            fnd_flag = ON;
+                            pthread_create(&tid_fnd, NULL, fnd_thread, NULL);
+                            pthread_detach(tid_fnd);
+                        }
                     }
                     break;
             }
