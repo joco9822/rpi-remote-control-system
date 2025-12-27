@@ -79,7 +79,36 @@ void* fnd_thread(void* arg) {
     return NULL;
 }
 
+/* 데몬 프로세스 - 생성 */
+void make_daemon() {
+    pid_t pid;
+
+    /* 1. fork(): 부모를 종료하여 자식을 백그라운드로 보낸다. */
+    pid = fork();
+    if (pid < 0) exit(1);
+    if (pid > 0) exit(0);
+
+    /* 2. setsid: 새로운 세션을 생성하고 세션 리더가 되어 터미널과 분리한다. */
+    if (setsid() < 0) exit(1);
+
+    /* 3. fork(): 세션 리더가 터미널을 다시 갖지 못하도록 방지한다. */
+    pid = fork();
+    if (pid < 0) exit(1);
+    if (pid > 0) exit(0);
+
+    /* 4. 파일 디스크립터 정리: 표준 입출력을 닫거나 /dev/null로 리다이렉트한다. */
+    umask(0);
+    chdir("/");
+    for (int x = 0; x <= 2; x++) close(x);
+    open("/dev/null", O_RDWR); // stdin
+    dup(0); // stdout
+    dup(0); // stderr
+}
+
 int main() {
+    /* 데몬 프로세스 - 생성 */
+    make_daemon();
+
     /* TCP - 변수 선언 */
     int serv_sock, clnt_sock;
     struct sockaddr_in serv_adr, clnt_adr;
