@@ -9,7 +9,7 @@ int cds_init() {
 }
 
 int cds_read() {
-    return digitalRead(PIN_CDS); 
+    return digitalRead(PIN_CDS);  // HIGH(1) 또는 LOW(0) 반환
 }
 
 /* 회로도 및 동작 설명 
