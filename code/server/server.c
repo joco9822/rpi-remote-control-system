@@ -26,7 +26,7 @@ int fnd_count = 0;
 
 /* 동적 라이브러리 & 장치제어 - 함수 포인터 */
 device_ctl_t led_ctl, buz_ctl, fnd_ctl;
-device_read_t cds_ctl;
+device_read_t cds_ctl;  // cds 센서는 device_read_t 타입 사용 
 
 /* [스레드 1] 조도 센서 -> LED */
 void* cds_thread(void* arg) {
@@ -74,6 +74,7 @@ void* fnd_thread(void* arg) {
         }
         if (fnd_flag == ON) delay(1000);
     }
+    fnd_ctl(0);  // 종료 시 0 표시
     fnd_flag = OFF;  // 클라이언트가 종료 or 카운트다운 완료 시 플래그 OFF 
     return NULL;
 }
@@ -87,9 +88,7 @@ int main() {
 
     /* 동적 라이브러리 - 변수 선언 */
     void *h_led, *h_buz, *h_cds, *h_fnd;
-    device_init_t led_init, buz_init, cds_init, fnd_init;
-    device_ctl_t led_ctl, buz_ctl, fnd_ctl;
-    device_read_t cds_ctl;       // cds 센서는 device_read_t 타입 사용 
+    device_init_t led_init, buz_init, cds_init, fnd_init; 
 
     /* 장치 스레드 변수 선언 */
     pthread_t tid_cds, tid_buz, tid_fnd;
@@ -121,11 +120,6 @@ int main() {
     if (buz_init) buz_init();
     if (cds_init) cds_init();
     if (fnd_init) fnd_init();
-
-    /* 장치 스레드 생성 (= 작업 시작) */
-    pthread_create(&tid_cds, NULL, cds_thread, NULL);
-    pthread_create(&tid_buz, NULL, buz_thread, NULL);
-    pthread_create(&tid_fnd, NULL, fnd_thread, NULL);
 
     /* TCP - 소켓 설정 */
     serv_sock = socket(PF_INET, SOCK_STREAM, 0);
@@ -201,6 +195,14 @@ int main() {
                     break;
             }
         }
+
+        /* 장치 제어 - 클라이언트 연결 종료 시 모든 장치 정리 */
+        cds_flag = OFF;
+        buz_flag = OFF;
+        fnd_flag = OFF;
+        led_ctl(OFF);
+        buz_ctl(OFF);
+        fnd_ctl(0);
 
         /* TCP - 클라이언트 소켓 닫기 */
         close(clnt_sock);
