@@ -3,7 +3,21 @@
 #include <string.h>
 #include <unistd.h>
 #include <arpa/inet.h>
+#include <signal.h>
 #include "common.h"
+
+/* TCP - 변수 선언 */
+int sock;  // signal_handler()에서도 접근 가능하도록 전역 변수로 선언 
+
+/* 시그널 처리 - 시그널 핸들러: SIGINT 시 자원(소켓) 해제 */
+void signal_handler(int signo) {
+    if (signo == SIGINT) {
+        printf("\n\n[Client] 시스템 종료 신호(SIGINT)를 수신했습니다.\n");
+        printf("[Client] 소켓을 닫고 안전하게 종료합니다.\n");
+        close(sock);
+        exit(0);  // 정상 종료 
+    }
+}
 
 void display_menu() {
     printf("\n[ Device Control Menu ]\n");
@@ -22,13 +36,18 @@ void display_menu() {
 
 int main(int argc, char **argv) {
     /* TCP - 변수 선언 */
-    int sock;
     struct sockaddr_in serv_addr;
     Protocol packet;         // 서버 <-> 클라이언트 통신 구조체 (defined in common.h)
     int choice;              // 사용자 입력: 메뉴 선택
 
+    /* 시그널 처리 - 커널에 시그널 등록 (프로세스) */
+    signal(SIGINT, signal_handler);  // SIGINT(Ctrl+C) -> signal_handler() 
+    signal(SIGQUIT, SIG_IGN);  // SIGQUIT(Ctrl+\) -> 무시
+    signal(SIGTSTP, SIG_IGN);  // SIGTSTP(Ctrl+Z) -> 무시
+
+    /* TCP - client 프로그램 실행, 서버 IP 확인 */
     if (argc != 2) {
-        printf("[Error in client.c] 0. 서버 IP 인자가 없습니다.\n");  // client 프로그램은 서버 IP를 인자로 받음
+        printf("[Error in client.c] 0. 서버 IP 인자가 없습니다.\n"); 
         exit(1);
     }
 
