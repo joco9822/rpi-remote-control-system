@@ -6,6 +6,10 @@
 #define CMD_READ     2  /* 센서 값 읽기 요청 */
 #define CMD_RESPONSE 3  /* 서버의 응답 */
 
+/* ON/OFF */
+#define ON     1
+#define OFF    0
+
 /* 대상 장치 ID (Device ID) */
 #define DEV_LED      10
 #define DEV_BUZZER   20
