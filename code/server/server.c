@@ -3,6 +3,8 @@
 #include <string.h>
 #include <unistd.h>
 #include <dlfcn.h>
+#include <sys/stat.h> 
+#include <fcntl.h>    
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include <pthread.h>
@@ -106,8 +108,6 @@ void make_daemon() {
 }
 
 int main() {
-    /* 데몬 프로세스 - 생성 */
-    make_daemon();
 
     /* TCP - 변수 선언 */
     int serv_sock, clnt_sock;
@@ -160,6 +160,9 @@ int main() {
     /* TCP - 서버 소켓 바인딩 및 리스닝 */
     if (bind(serv_sock, (struct sockaddr*)&serv_adr, sizeof(serv_adr)) == -1) return 1;
     if (listen(serv_sock, 5) == -1) return 1;
+
+    /* 데몬 프로세스 - 생성 */
+    make_daemon();
 
     while (1) {
         /* TCP - 클라이언트 연결 수락 */
