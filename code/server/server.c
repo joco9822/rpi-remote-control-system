@@ -162,73 +162,73 @@ int main() {
     if (listen(serv_sock, 5) == -1) return 1;
 
     /* 데몬 프로세스 - 생성 */
-    make_daemon();
+    //make_daemon();
 
     while (1) {
-        /* TCP - 클라이언트 연결 수락 */
+        printf("\n[Server] 클라이언트 접속 대기 중 (Port: 5100)...\n");
         clnt_adr_sz = sizeof(clnt_adr);
         clnt_sock = accept(serv_sock, (struct sockaddr*)&clnt_adr, &clnt_adr_sz);
-        if (clnt_sock == -1) {
-            printf("[Error in server.c] 2. 클라이언트 Accept 실패하였습니다. 연결을 재시도합니다.\n");
-            continue;
-        }
+        
+        if (clnt_sock == -1) continue;
+        printf("[Server] 클라이언트가 연결되었습니다 (IP: %s)\n", inet_ntoa(clnt_adr.sin_addr));
 
-        /* TCP - 클라이언트로부터 데이터 수신 */
         while (read(clnt_sock, &packet, sizeof(packet)) > 0) {
-
-            /* 장치 제어 */
             switch (packet.deviceid) {
-
-                /* 장치 제어 - LED ON/OFF */
                 case DEV_LED:
                     if (led_ctl) {
                         led_ctl(packet.data);
+                        printf("[LED] 제어 수신 -> 데이터: %d (%s)\n", 
+                                packet.data, (packet.data == ON) ? "ON" : (packet.data == OFF) ? "OFF" : "밝기 조절");
                     }
                     break;
 
-                /* 장치 제어 - BUZZER ON/OFF */
                 case DEV_BUZZER:
                     if (packet.data == ON) {
-                        if (buz_flag == OFF) {  // 중복 생성 방지
+                        if (buz_flag == OFF) {
                             buz_flag = ON;
                             pthread_create(&tid_buz, NULL, buz_thread, NULL);
-                            pthread_detach(tid_buz); // 종료 시 자원 자동 반환
+                            pthread_detach(tid_buz);
+                            printf("[BUZZER] 연주 스레드 시작\n");
                         }
                     } else {
                         buz_flag = OFF;
+                        printf("[BUZZER] 연주 중단 요청\n");
                     }
                     break;
 
-                /* 장치 제어 - CDS ON/OFF */
                 case DEV_CDS:
                     if (packet.data == ON) {
                         if (cds_flag == OFF) {
                             cds_flag = ON;
                             pthread_create(&tid_cds, NULL, cds_thread, NULL);
                             pthread_detach(tid_cds);
+                            printf("[CDS] 실시간 조도 감시 모드 시작\n");
                         }
                     } else {
                         cds_flag = OFF; 
+                        printf("[CDS] 조도 감시 모드 종료\n");
                     }
                     break;
 
-                /* 장치 제어 - FND 카운트다운/중단 */
                 case DEV_FND:
-                    if (packet.data == -1) {  // 중단 
+                    if (packet.data == -1) {
                         fnd_flag = OFF; 
+                        printf("[FND] 카운트다운 강제 중단\n");
                     } else {
                         if (fnd_flag == OFF) {
                             fnd_count = packet.data;
                             fnd_flag = ON;
                             pthread_create(&tid_fnd, NULL, fnd_thread, NULL);
                             pthread_detach(tid_fnd);
+                            printf("[FND] 카운트다운 시작 (설정값: %d)\n", fnd_count);
                         }
                     }
                     break;
             }
         }
 
-        /* 장치 제어 - 클라이언트 연결 종료 시 모든 장치 정리 */
+        /* 클라이언트 종료 시 정리 */
+        printf("[Server] 클라이언트 접속 종료. 장치를 초기화한다.\n");
         cds_flag = OFF;
         buz_flag = OFF;
         fnd_flag = OFF;
@@ -236,7 +236,6 @@ int main() {
         buz_ctl(OFF);
         fnd_ctl(0);
 
-        /* TCP - 클라이언트 소켓 닫기 */
         close(clnt_sock);
     }
 
