@@ -162,7 +162,7 @@ int main() {
     if (listen(serv_sock, 5) == -1) return 1;
 
     /* 데몬 프로세스 - 생성 */
-    //make_daemon();
+    make_daemon();
 
     while (1) {
         printf("\n[Server] 클라이언트 접속 대기 중 (Port: 5100)...\n");
